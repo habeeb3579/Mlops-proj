@@ -177,7 +177,7 @@ class NYCTaxiDurationPredictor:
         # Calculate ride duration in minutes
         df['duration'] = (df['lpep_dropoff_datetime'] - df['lpep_pickup_datetime']).dt.total_seconds() / 60
         
-        # Filter out unreasonable durations (less than 1 minute or more than 2 hours)
+        # Filter out unreasonable durations (less than 1 minute or more than 1 hour)
         df = df[(df['duration'] >= 1) & (df['duration'] <= 60)]
 
         df[self.categorical_columns] = df[self.categorical_columns].astype(str)
@@ -194,7 +194,8 @@ class NYCTaxiDurationPredictor:
             self.target_transformer_obj = PowerTransformer(method='yeo-johnson')
             y = self.target_transformer_obj.fit_transform(y.values.reshape(-1, 1)).ravel()
         
-        self.transformed_target = self.target_transformer is not None
+        #self.transformed_target = self.target_transformer is not None
+        self.transformed_target = self.target_transformer not in [None, "none"]
         
         return X, y
     
@@ -226,7 +227,7 @@ class NYCTaxiDurationPredictor:
         if self.transformed_target:
             if self.target_transformer_obj == "log":
                 predictions = np.expm1(predictions)
-            elif self.target_transformer_obj:
+            elif self.target_transformer_obj == "power":
                 predictions = self.target_transformer_obj.inverse_transform(
                     predictions.reshape(-1, 1)
                 ).ravel()
@@ -244,14 +245,18 @@ class NYCTaxiDurationPredictor:
         # Get predictions
         y_pred = self.predict(X)
         
+        #print(f"transformed target is {self.transformed_target} and {self.target_transformer}")
         # Inverse transform y_true if needed
+        #if self.transformed_target and self.target_transformer not in [None, "none"]
         if self.transformed_target:
             if self.target_transformer_obj == "log":
                 y_true_original = np.expm1(y_true)
-            elif self.target_transformer_obj:
+            elif self.target_transformer_obj == "power":
                 y_true_original = self.target_transformer_obj.inverse_transform(
                     y_true.values.reshape(-1, 1)
                 ).ravel()
+            #else:
+            #    y_true_original = y_true
         else:
             y_true_original = y_true
         
@@ -485,7 +490,7 @@ def train_model(args):
     X_train_full, y_train_full = predictor.prepare_data(train_df)
     
     # Handle test data
-    if args.test_year and args.test_month:
+    if args.test_year is not None and args.test_month is not None:
         # Use specified test data
         test_df = predictor.download_data(args.test_year, args.test_month)
         X_test, y_test = predictor.prepare_data(test_df)
@@ -611,7 +616,7 @@ def main():
                           help='Machine learning model to use')
     
     # Preprocessing arguments for train mode
-    train_parser.add_argument('--target-transform', type=str, choices=['log', 'power', None],
+    train_parser.add_argument('--target-transform', type=str, choices=['log', 'power', 'none'],
                           help='Transformation to apply to the target variable')
     
     # Model saving arguments for train mode

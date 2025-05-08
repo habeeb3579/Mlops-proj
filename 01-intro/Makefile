@@ -5,6 +5,8 @@ PYTHON := python3
 SCRIPT := NYC_trip_duration_prediction.py
 DATA_YEAR := 2021
 DATA_MONTH := 1
+TEST_YEAR := 2021
+TEST_MONTH := 1
 MODEL := linear_regression
 TARGET_TRANSFORM := log
 RANDOM_STATE := 42
@@ -50,6 +52,8 @@ train-linear: setup
 	$(PYTHON) $(SCRIPT) train \
 		--train-year $(DATA_YEAR) \
 		--train-month $(DATA_MONTH) \
+		--test-year $(TEST_YEAR) \
+		--test-month $(TEST_MONTH) \
 		--model linear_regression \
 		--target-transform $(TARGET_TRANSFORM) \
 		--random-state $(RANDOM_STATE)
@@ -58,6 +62,8 @@ train-ridge: setup
 	$(PYTHON) $(SCRIPT) train \
 		--train-year $(DATA_YEAR) \
 		--train-month $(DATA_MONTH) \
+		--test-year $(TEST_YEAR) \
+		--test-month $(TEST_MONTH) \
 		--model ridge \
 		--target-transform $(TARGET_TRANSFORM) \
 		--random-state $(RANDOM_STATE)
@@ -66,6 +72,8 @@ train-lasso: setup
 	$(PYTHON) $(SCRIPT) train \
 		--train-year $(DATA_YEAR) \
 		--train-month $(DATA_MONTH) \
+		--test-year $(TEST_YEAR) \
+		--test-month $(TEST_MONTH) \
 		--model lasso \
 		--target-transform $(TARGET_TRANSFORM) \
 		--random-state $(RANDOM_STATE)
@@ -74,6 +82,8 @@ train-rf: setup
 	$(PYTHON) $(SCRIPT) train \
 		--train-year $(DATA_YEAR) \
 		--train-month $(DATA_MONTH) \
+		--test-year $(TEST_YEAR) \
+		--test-month $(TEST_MONTH) \
 		--model random_forest \
 		--target-transform $(TARGET_TRANSFORM) \
 		--random-state $(RANDOM_STATE)
@@ -82,6 +92,8 @@ train-gb: setup
 	$(PYTHON) $(SCRIPT) train \
 		--train-year $(DATA_YEAR) \
 		--train-month $(DATA_MONTH) \
+		--test-year $(TEST_YEAR) \
+		--test-month $(TEST_MONTH) \
 		--model gradient_boosting \
 		--target-transform $(TARGET_TRANSFORM) \
 		--random-state $(RANDOM_STATE)
@@ -96,6 +108,8 @@ train-custom: setup
 	$(PYTHON) $(SCRIPT) train \
 		--train-year $(DATA_YEAR) \
 		--train-month $(DATA_MONTH) \
+		--test-year $(TEST_YEAR) \
+		--test-month $(TEST_MONTH) \
 		--model $(MODEL) \
 		--target-transform $(TARGET_TRANSFORM) \
 		--random-state $(RANDOM_STATE)
