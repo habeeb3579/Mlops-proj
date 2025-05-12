@@ -523,7 +523,7 @@ class DictVectorizingTransformer:
             feature_names: List of feature names to convert to dicts
         """
         self.feature_names = feature_names
-        self.dict_vectorizer = DictVectorizer(sparse=False)
+        self.dict_vectorizer = DictVectorizer(sparse=True)
     
     def fit(self, X, y=None):
         """
@@ -705,7 +705,7 @@ def predict_with_model(args):
     # Download and prepare test data
     test_df = predictor.download_data(args.year, args.month, taxi=args.taxi_type)
     X_test, y_test = predictor.prepare_data(test_df)
-    
+
     # Evaluate the model
     predictor.evaluate(X_test, y_test)
     
