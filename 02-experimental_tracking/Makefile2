@@ -1,0 +1,73 @@
+.PHONY: setup data clean run test lint format notebooks help
+
+# Default target
+all: help
+
+# Setup environment
+setup:
+	pip install -r requirements.txt
+
+# Data processing commands
+data:
+	mkdir -p data
+	python -m scripts.download_data --year 2021 --months 1 2 3 
+
+# Clean up
+clean:
+	rm -rf __pycache__
+	rm -rf .pytest_cache
+	rm -rf .ipynb_checkpoints
+	rm -rf build dist *.egg-info
+	find . -name "*.pyc" -delete
+	find . -name "__pycache__" -delete
+
+# Run experiment with default parameters
+run:
+	python run_experiment.py --summary
+
+# Run experiments with specific configurations
+run-linear:
+	python run_experiment.py --models LinearRegression Ridge Lasso --no-tune --summary
+
+run-tree:
+	python run_experiment.py --models RandomForest XGBoost --summary
+
+run-quick:
+	python run_experiment.py --no-tune --summary
+
+# Run all tests
+test:
+	pytest -xvs
+
+# Run linting
+lint:
+	pylint mlflowpy.py run_experiment.py scripts/
+
+# Format code 
+format:
+	black mlflowpy.py run_experiment.py scripts/
+	isort mlflowpy.py run_experiment.py scripts/
+
+# Start Jupyter notebook server
+notebooks:
+	cd notebooks && jupyter notebook
+
+# MLflow UI
+mlflow-ui:
+	mlflow ui --backend-store-uri sqlite:///mlflow.db
+
+# Help command
+help:
+	@echo "Available targets:"
+	@echo "  setup      - Install dependencies"
+	@echo "  data       - Download data for experiments"
+	@echo "  clean      - Clean up temp files and caches"
+	@echo "  run        - Run experiment with default parameters"
+	@echo "  run-linear - Run experiment with linear models only"
+	@echo "  run-tree   - Run experiment with tree-based models only"
+	@echo "  run-quick  - Run experiment without hyperparameter tuning"
+	@echo "  test       - Run tests"
+	@echo "  lint       - Run code linting"
+	@echo "  format     - Format code"
+	@echo "  notebooks  - Start Jupyter notebook server"
+	@echo "  mlflow-ui  - Start MLflow UI"

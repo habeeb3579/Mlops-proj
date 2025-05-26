@@ -1,0 +1,33 @@
+tracking:
+  store_type: sqlite # Options: sqlite, postgresql, aws, gcp, local
+  db_path: mlflow.db # Used if store_type is sqlite
+  host: localhost # Used if postgresql
+  port: 5432
+  user: mlflow
+  password: mlflow
+  database: mlflow
+  s3_bucket: my-mlflow-bucket # Used if aws
+  gcp_bucket: my-mlflow-bucket # Used if gcp
+
+experiment:
+  name: nyc-taxi-experiment
+  model_registry: nyc-taxi-regressor
+
+paths:
+  data_dir: ./data
+  models_dir: ./models
+
+tuning:
+  enabled: true
+  max_evals: 20
+
+preprocessing:
+  categorical_transformer: onehot
+  numerical_transformer: standard
+
+models:
+  - LinearRegression
+  - Ridge
+  - Lasso
+  - RandomForest
+  - XGBoost
