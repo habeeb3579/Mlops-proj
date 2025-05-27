@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/569851816712545427/e3e8d0bb615b42e881239ac61216d6ed/artifacts
+end_time: 1748310263802
+entry_point_name: ''
+experiment_id: '569851816712545427'
+lifecycle_stage: active
+run_id: e3e8d0bb615b42e881239ac61216d6ed
+run_name: treasured-skink-471
+run_uuid: e3e8d0bb615b42e881239ac61216d6ed
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310251730
+status: 3
+tags: []
+user_id: habeeb

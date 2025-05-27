@@ -1,0 +1,9 @@
+digest: 5a2feb47
+name: dataset
+profile: '{"features_shape": [69392, 5702], "features_size": 395673184, "features_nbytes":
+  3165385472}'
+schema: '{"mlflow_tensorspec": {"features": "[{\"type\": \"tensor\", \"tensor-spec\":
+  {\"dtype\": \"float64\", \"shape\": [-1, 5702]}}]", "targets": null}}'
+source: '{"tags": {"mlflow.user": "habeeb", "mlflow.source.name": "/home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/register_model.py",
+  "mlflow.source.type": "LOCAL", "mlflow.source.git.commit": "f1272fe8230b270bbfbe824c3587a8361ffaaac4"}}'
+source_type: code

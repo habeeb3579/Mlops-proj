@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/124239494768279006/d293ef619bf64c37b43a88c9f6e6d005/artifacts
+end_time: 1748310141890
+entry_point_name: ''
+experiment_id: '124239494768279006'
+lifecycle_stage: active
+run_id: d293ef619bf64c37b43a88c9f6e6d005
+run_name: righteous-sloth-453
+run_uuid: d293ef619bf64c37b43a88c9f6e6d005
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310136181
+status: 3
+tags: []
+user_id: habeeb

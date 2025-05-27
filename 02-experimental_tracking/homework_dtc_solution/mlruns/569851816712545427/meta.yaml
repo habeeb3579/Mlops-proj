@@ -1,0 +1,6 @@
+artifact_location: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/569851816712545427
+creation_time: 1748310197170
+experiment_id: '569851816712545427'
+last_update_time: 1748310197170
+lifecycle_stage: active
+name: random-forest-best-models

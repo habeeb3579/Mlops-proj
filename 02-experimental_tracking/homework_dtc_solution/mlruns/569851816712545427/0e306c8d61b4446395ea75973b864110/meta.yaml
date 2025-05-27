@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/569851816712545427/0e306c8d61b4446395ea75973b864110/artifacts
+end_time: 1748310238819
+entry_point_name: ''
+experiment_id: '569851816712545427'
+lifecycle_stage: active
+run_id: 0e306c8d61b4446395ea75973b864110
+run_name: languid-cat-780
+run_uuid: 0e306c8d61b4446395ea75973b864110
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310226084
+status: 3
+tags: []
+user_id: habeeb

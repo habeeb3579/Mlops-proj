@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/124239494768279006/c125bb070e8047c09159ae149d564e87/artifacts
+end_time: 1748310135233
+entry_point_name: ''
+experiment_id: '124239494768279006'
+lifecycle_stage: active
+run_id: c125bb070e8047c09159ae149d564e87
+run_name: tasteful-midge-587
+run_uuid: c125bb070e8047c09159ae149d564e87
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310126745
+status: 3
+tags: []
+user_id: habeeb

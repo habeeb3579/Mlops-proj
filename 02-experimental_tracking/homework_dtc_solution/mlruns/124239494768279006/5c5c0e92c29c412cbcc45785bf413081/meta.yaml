@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/124239494768279006/5c5c0e92c29c412cbcc45785bf413081/artifacts
+end_time: 1748310180670
+entry_point_name: ''
+experiment_id: '124239494768279006'
+lifecycle_stage: active
+run_id: 5c5c0e92c29c412cbcc45785bf413081
+run_name: dashing-wren-652
+run_uuid: 5c5c0e92c29c412cbcc45785bf413081
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310176970
+status: 3
+tags: []
+user_id: habeeb

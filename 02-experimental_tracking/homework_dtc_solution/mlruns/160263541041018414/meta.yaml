@@ -1,0 +1,6 @@
+artifact_location: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/160263541041018414
+creation_time: 1748310098175
+experiment_id: '160263541041018414'
+last_update_time: 1748310098175
+lifecycle_stage: active
+name: random-forest-train

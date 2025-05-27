@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/124239494768279006/f8b7903987ee4688ae992dd5000369d4/artifacts
+end_time: 1748310183681
+entry_point_name: ''
+experiment_id: '124239494768279006'
+lifecycle_stage: active
+run_id: f8b7903987ee4688ae992dd5000369d4
+run_name: selective-donkey-466
+run_uuid: f8b7903987ee4688ae992dd5000369d4
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310180673
+status: 3
+tags: []
+user_id: habeeb

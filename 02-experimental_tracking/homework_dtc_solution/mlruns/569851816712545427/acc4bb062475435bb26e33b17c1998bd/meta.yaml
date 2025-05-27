@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/569851816712545427/acc4bb062475435bb26e33b17c1998bd/artifacts
+end_time: 1748310208966
+entry_point_name: ''
+experiment_id: '569851816712545427'
+lifecycle_stage: active
+run_id: acc4bb062475435bb26e33b17c1998bd
+run_name: sassy-squirrel-26
+run_uuid: acc4bb062475435bb26e33b17c1998bd
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310197574
+status: 3
+tags: []
+user_id: habeeb

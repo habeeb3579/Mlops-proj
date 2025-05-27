@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/124239494768279006/5081836363af42768f035a0d1b949dee/artifacts
+end_time: 1748310154328
+entry_point_name: ''
+experiment_id: '124239494768279006'
+lifecycle_stage: active
+run_id: 5081836363af42768f035a0d1b949dee
+run_name: lyrical-wolf-46
+run_uuid: 5081836363af42768f035a0d1b949dee
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310144671
+status: 3
+tags: []
+user_id: habeeb

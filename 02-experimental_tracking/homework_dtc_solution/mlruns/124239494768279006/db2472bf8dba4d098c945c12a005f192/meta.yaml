@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/124239494768279006/db2472bf8dba4d098c945c12a005f192/artifacts
+end_time: 1748310135606
+entry_point_name: ''
+experiment_id: '124239494768279006'
+lifecycle_stage: active
+run_id: db2472bf8dba4d098c945c12a005f192
+run_name: chill-stork-285
+run_uuid: db2472bf8dba4d098c945c12a005f192
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310135236
+status: 3
+tags: []
+user_id: habeeb

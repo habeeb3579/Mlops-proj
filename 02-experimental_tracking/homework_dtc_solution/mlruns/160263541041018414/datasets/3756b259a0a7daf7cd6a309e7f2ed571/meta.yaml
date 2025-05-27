@@ -1,0 +1,10 @@
+digest: acc5c667
+name: dataset
+profile: '{"features_shape": [65946, 5702], "features_size": 376024092, "features_nbytes":
+  3008192736, "targets_shape": [65946], "targets_size": 65946, "targets_nbytes": 527568}'
+schema: '{"mlflow_tensorspec": {"features": "[{\"type\": \"tensor\", \"tensor-spec\":
+  {\"dtype\": \"float64\", \"shape\": [-1, 5702]}}]", "targets": "[{\"type\": \"tensor\",
+  \"tensor-spec\": {\"dtype\": \"float64\", \"shape\": [-1]}}]"}}'
+source: '{"tags": {"mlflow.user": "habeeb", "mlflow.source.name": "/home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/train.py",
+  "mlflow.source.type": "LOCAL", "mlflow.source.git.commit": "f1272fe8230b270bbfbe824c3587a8361ffaaac4"}}'
+source_type: code

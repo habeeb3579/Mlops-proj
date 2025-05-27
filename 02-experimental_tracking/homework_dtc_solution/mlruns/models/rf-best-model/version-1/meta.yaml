@@ -1,0 +1,14 @@
+aliases: []
+creation_timestamp: 1748310263823
+current_stage: None
+description: null
+last_updated_timestamp: 1748310263823
+name: rf-best-model
+run_id: acc4bb062475435bb26e33b17c1998bd
+run_link: null
+source: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/569851816712545427/acc4bb062475435bb26e33b17c1998bd/artifacts/model
+status: READY
+status_message: null
+storage_location: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/569851816712545427/acc4bb062475435bb26e33b17c1998bd/artifacts/model
+user_id: null
+version: 1

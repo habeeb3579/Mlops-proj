@@ -1,0 +1,15 @@
+artifact_uri: file:///home/habeeb/Mlops-proj/02-experimental_tracking/homework_dtc_solution/mlruns/124239494768279006/59514c051c25436eaec2910a5215102e/artifacts
+end_time: 1748310136179
+entry_point_name: ''
+experiment_id: '124239494768279006'
+lifecycle_stage: active
+run_id: 59514c051c25436eaec2910a5215102e
+run_name: shivering-boar-462
+run_uuid: 59514c051c25436eaec2910a5215102e
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748310135608
+status: 3
+tags: []
+user_id: habeeb
