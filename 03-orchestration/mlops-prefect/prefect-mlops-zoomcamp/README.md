@@ -44,14 +44,15 @@ if deploying using deployment.yaml file, use
 prefect deploy --all
 ```
 
-````bash
+```bash
 prefect deployment run main_flow/taxi1
+```
 
 start the workpool
 
 ```bash
 prefect worker start --pool "zoompool"
-````
+```
 
 see available blocks
 
