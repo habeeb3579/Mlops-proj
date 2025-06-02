@@ -27,6 +27,7 @@ blocks:
       path: unit_1_data_preparation/transformers/hyperparameter_tuning/xgboost.py
   downstream_blocks:
   - xgboost
+  - dashboard_data_source
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -44,7 +45,8 @@ blocks:
   configuration:
     file_source:
       path: unit_1_data_preparation/data_exporters/xgboost.py
-  downstream_blocks: []
+  downstream_blocks:
+  - dashboard_data_source
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -58,6 +60,25 @@ blocks:
   - training_set
   - hyperparameter_tuning/xgboost
   uuid: xgboost
+- all_upstream_blocks_executed: true
+  color: purple
+  configuration:
+    file_source:
+      path: unit_1_data_preparation/custom/dashboard_data_source.py
+  downstream_blocks: []
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: dashboard_data_source
+  retry_config: null
+  status: executed
+  timeout: null
+  type: custom
+  upstream_blocks:
+  - xgboost
+  - hyperparameter_tuning/xgboost
+  uuid: dashboard_data_source
 cache_block_output_in_memory: false
 callbacks: []
 concurrency_config: {}
