@@ -269,9 +269,8 @@ Makefile1 (if using mlflowpy.py to run the code)
 
 ## Configure mlflow on GCP
 
+[watch](https://www.youtube.com/watch?v=MWfKAgEHsHo)
 create a vm, bucket, postgresdb
 in the vm, sudo apt update, pip install mlflow psycopg2-binary, mlflow server -h 0.0.0.0 -p 5000 --backend-store-uri postgresql://DB_USER:DB_PASSWORD@DB_ENDPOINT:5432/DB_NAME --default-artifact-root gs://GS_BUCKET_NAME
-
-mlflow server -h 0.0.0.0 -p 5000 --backend-store-uri postgresql://postgres:35792025@10.88.16.3:5432/mlflow --default-artifact-root gs://mlfflow-bucket-nyc
 
 go to compute engine, copy external api, add :5000 to it
