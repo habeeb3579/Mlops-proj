@@ -10,10 +10,17 @@ TRAIN_MONTH := 1
 VAL_YEAR := 2021
 VAL_MONTH := 2
 TAXI_TYPE := green
-TRACKING_STORE := sqlite
+TRACKING_STORE := gcp
 DB_PATH := mlflow.db
-EXPERIMENT_NAME := nyc-taxi-exp-weighted-main2
-MODEL_NAME := nyc-taxi-regressor-weighted-main2
+HOST := localhost
+PORT := 5000
+TRACKING_URI := http://35.224.212.79:5000
+ARTIFACT_STORE := local
+BUCKET := dezoomfinal-mlflow-artifacts
+PREFIX := none
+ARTIFACT_LOCATION := gs://dezoomfinal-mlflow-artifacts
+EXPERIMENT_NAME := nyc-taxi-exp-weighted-main4
+MODEL_NAME := nyc-taxi-regressor-weighted-main4
 CAT_TRANSFORMER := dict_vectorizer
 NUM_TRANSFORMER := standard
 MODELS := all
@@ -23,7 +30,7 @@ MAX_EVALS := 5
 
 # Directory structure
 DATA_DIR := data
-MODELS_DIR := models
+MODELS_DIR := models_newest
 MLRUNS_DIR := mlruns
 
 # Help command
@@ -56,28 +63,17 @@ help:
 	@echo ""
 	@echo "Environment Variables:"
 	@echo "  MODELS                  Models to train (comma-separated or single model, default: all)"
-	@echo "  TRAIN_YEAR              Training data year (default: 2021)"
-	@echo "  TRAIN_MONTH             Training data month (default: 1)"
-	@echo "  VAL_YEAR                Validation data year (default: 2021)"
-	@echo "  VAL_MONTH               Validation data month (default: 2)"
-	@echo "  TAXI_TYPE               Taxi type: green or yellow (default: green)"
-	@echo "  TRACKING_STORE          MLflow tracking store (default: sqlite)"
-	@echo "  DB_PATH                 SQLite database path (default: mlflow.db)"
-	@echo "  EXPERIMENT_NAME         MLflow experiment name (default: nyc-taxi-exp-weighted)"
-	@echo "  MODEL_NAME              Model registry name (default: nyc-taxi-regressor-weighted)"
-	@echo "  CAT_TRANSFORMER         Categorical transformer (default: dict_vectorizer)"
-	@echo "  NUM_TRANSFORMER         Numerical transformer (default: standard)"
-	@echo "  TUNE                    Enable hyperparameter tuning (default: true)"
-	@echo "  REGISTER                Register best model (default: true)"
-	@echo "  MAX_EVALS               Max evaluations for hyperparameter tuning (default: 20)"
+	@echo "  TRACKING_STORE          Tracking backend (sqlite, postgresql, aws, gcp, local)"
+	@echo "  ARTIFACT_STORE          Artifact store type (local, s3, gcs)"
+	@echo "  BUCKET                  S3 or GCS bucket name"
+	@echo "  PREFIX                  Subdirectory in cloud bucket"
+	@echo "  ARTIFACT_LOCATION       Local artifact directory (if local)"
+	@echo "  HOST                    MLflow tracking server host"
+	@echo "  PORT                    MLflow tracking server port"
+	@echo "  TRACKING_URI            Direct tracking URI (optional for remote)"
 	@echo ""
-	@echo "Examples:"
-	@echo "  make run-models MODELS=\"Ridge XGBoost\""
-	@echo "  make run-all MAX_EVALS=30"
-	@echo "  make run-custom TRAIN_YEAR=2021 TRAIN_MONTH=3 VAL_YEAR=2021 VAL_MONTH=4 TUNE=false"
-	@echo "  make setup-postgres DB_USER=mlflow_user DB_PASSWORD=secret"
 
-# Make sure directories exist
+# Ensure directories exist
 $(DATA_DIR):
 	mkdir -p $(DATA_DIR)
 
@@ -93,79 +89,60 @@ define get_register_flag
 $(if $(filter $(REGISTER),false),--no-register)
 endef
 
-# Basic commands
+# Core Commands
 run-all: $(DATA_DIR) $(MODELS_DIR)
 	$(PYTHON) -m main \
-		--train-year $(TRAIN_YEAR) \
-		--train-month $(TRAIN_MONTH) \
-		--val-year $(VAL_YEAR) \
-		--val-month $(VAL_MONTH) \
+		--train-year $(TRAIN_YEAR) --train-month $(TRAIN_MONTH) \
+		--val-year $(VAL_YEAR) --val-month $(VAL_MONTH) \
 		--taxi $(TAXI_TYPE) \
-		--tracking-store $(TRACKING_STORE) \
-		--db-path $(DB_PATH) \
-		--experiment-name $(EXPERIMENT_NAME) \
-		--model-name $(MODEL_NAME) \
-		--categorical-transformer $(CAT_TRANSFORMER) \
-		--numerical-transformer $(NUM_TRANSFORMER) \
-		--models all \
-		--max-evals $(MAX_EVALS) \
-		$(call get_tune_flag) \
-		$(call get_register_flag)
+		--tracking-store $(TRACKING_STORE) --db-path $(DB_PATH) \
+		--host $(HOST) --port $(PORT) --tracking-uri $(TRACKING_URI) \
+		--artifact-store $(ARTIFACT_STORE) --bucket $(BUCKET) --prefix $(PREFIX) --artifact-location $(ARTIFACT_LOCATION) \
+		--experiment-name $(EXPERIMENT_NAME) --model-name $(MODEL_NAME) \
+		--categorical-transformer $(CAT_TRANSFORMER) --numerical-transformer $(NUM_TRANSFORMER) \
+		--models all --max-evals $(MAX_EVALS) \
+		$(call get_tune_flag) $(call get_register_flag)
 
 run-models: $(DATA_DIR) $(MODELS_DIR)
 	$(PYTHON) -m main \
-		--train-year $(TRAIN_YEAR) \
-		--train-month $(TRAIN_MONTH) \
-		--val-year $(VAL_YEAR) \
-		--val-month $(VAL_MONTH) \
+		--train-year $(TRAIN_YEAR) --train-month $(TRAIN_MONTH) \
+		--val-year $(VAL_YEAR) --val-month $(VAL_MONTH) \
 		--taxi $(TAXI_TYPE) \
-		--tracking-store $(TRACKING_STORE) \
-		--db-path $(DB_PATH) \
-		--experiment-name $(EXPERIMENT_NAME) \
-		--model-name $(MODEL_NAME) \
-		--categorical-transformer $(CAT_TRANSFORMER) \
-		--numerical-transformer $(NUM_TRANSFORMER) \
-		--models $(MODELS) \
-		--max-evals $(MAX_EVALS) \
-		$(call get_tune_flag) \
-		$(call get_register_flag)
+		--tracking-store $(TRACKING_STORE) --db-path $(DB_PATH) \
+		--host $(HOST) --port $(PORT) --tracking-uri $(TRACKING_URI) \
+		--artifact-store $(ARTIFACT_STORE) --bucket $(BUCKET) --prefix $(PREFIX) --artifact-location $(ARTIFACT_LOCATION) \
+		--experiment-name $(EXPERIMENT_NAME) --model-name $(MODEL_NAME) \
+		--categorical-transformer $(CAT_TRANSFORMER) --numerical-transformer $(NUM_TRANSFORMER) \
+		--models $(MODELS) --max-evals $(MAX_EVALS) \
+		$(call get_tune_flag) $(call get_register_flag)
 
 run-custom: $(DATA_DIR) $(MODELS_DIR)
 	$(PYTHON) -m main \
-		--train-year $(TRAIN_YEAR) \
-		--train-month $(TRAIN_MONTH) \
-		--val-year $(VAL_YEAR) \
-		--val-month $(VAL_MONTH) \
+		--train-year $(TRAIN_YEAR) --train-month $(TRAIN_MONTH) \
+		--val-year $(VAL_YEAR) --val-month $(VAL_MONTH) \
 		--taxi $(TAXI_TYPE) \
-		--tracking-store $(TRACKING_STORE) \
-		--db-path $(DB_PATH) \
-		--experiment-name $(EXPERIMENT_NAME) \
-		--model-name $(MODEL_NAME) \
-		--categorical-transformer $(CAT_TRANSFORMER) \
-		--numerical-transformer $(NUM_TRANSFORMER) \
-		--models $(MODELS) \
-		--max-evals $(MAX_EVALS) \
-		$(call get_tune_flag) \
-		$(call get_register_flag)
+		--tracking-store $(TRACKING_STORE) --db-path $(DB_PATH) \
+		--host $(HOST) --port $(PORT) --tracking-uri $(TRACKING_URI) \
+		--artifact-store $(ARTIFACT_STORE) --bucket $(BUCKET) --prefix $(PREFIX) --artifact-location $(ARTIFACT_LOCATION) \
+		--experiment-name $(EXPERIMENT_NAME) --model-name $(MODEL_NAME) \
+		--categorical-transformer $(CAT_TRANSFORMER) --numerical-transformer $(NUM_TRANSFORMER) \
+		--models $(MODELS) --max-evals $(MAX_EVALS) \
+		$(call get_tune_flag) $(call get_register_flag)
 
 run-quick: $(DATA_DIR) $(MODELS_DIR)
 	$(PYTHON) -m main \
-		--train-year $(TRAIN_YEAR) \
-		--train-month $(TRAIN_MONTH) \
-		--val-year $(VAL_YEAR) \
-		--val-month $(VAL_MONTH) \
+		--train-year $(TRAIN_YEAR) --train-month $(TRAIN_MONTH) \
+		--val-year $(VAL_YEAR) --val-month $(VAL_MONTH) \
 		--taxi $(TAXI_TYPE) \
-		--tracking-store $(TRACKING_STORE) \
-		--db-path $(DB_PATH) \
-		--experiment-name $(EXPERIMENT_NAME) \
-		--model-name $(MODEL_NAME) \
-		--categorical-transformer $(CAT_TRANSFORMER) \
-		--numerical-transformer $(NUM_TRANSFORMER) \
-		--models LinearRegression \
-		--no-tune
+		--tracking-store $(TRACKING_STORE) --db-path $(DB_PATH) \
+		--host $(HOST) --port $(PORT) --tracking-uri $(TRACKING_URI) \
+		--artifact-store $(ARTIFACT_STORE) --bucket $(BUCKET) --prefix $(PREFIX) --artifact-location $(ARTIFACT_LOCATION) \
+		--experiment-name $(EXPERIMENT_NAME) --model-name $(MODEL_NAME) \
+		--categorical-transformer $(CAT_TRANSFORMER) --numerical-transformer $(NUM_TRANSFORMER) \
+		--models LinearRegression --no-tune
 
 register-models:
-	$(PYTHON) -c "from core.manager import ExperimentManager; manager = ExperimentManager(tracking_config={'tracking_store': '$(TRACKING_STORE)', 'db_path': '$(DB_PATH)'}, experiment_name='$(EXPERIMENT_NAME)', model_registry_name='$(MODEL_NAME)'); manager.register_best_model()"
+	$(PYTHON) -c "from core.manager import ExperimentManager; manager = ExperimentManager(tracking_config={'tracking_store': '$(TRACKING_STORE)', 'db_path': '$(DB_PATH)', 'host': '$(HOST)', 'port': $(PORT), 'tracking_uri': '$(TRACKING_URI)'}, experiment_name='$(EXPERIMENT_NAME)', model_registry_name='$(MODEL_NAME)'); manager.register_best_model()"
 
 serve-model:
 	@echo "Starting MLflow model server for production model $(MODEL_NAME)"
@@ -173,13 +150,7 @@ serve-model:
 
 mlflow-ui:
 	@echo "Starting MLflow UI with tracking store: $(TRACKING_STORE)"
-	@if [ "$(TRACKING_STORE)" = "sqlite" ]; then \
-		mlflow ui --backend-store-uri sqlite:///$(DB_PATH); \
-	elif [ "$(TRACKING_STORE)" = "postgresql" ]; then \
-		mlflow ui --backend-store-uri postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME); \
-	else \
-		mlflow ui; \
-	fi
+	mlflow ui --backend-store-uri sqlite:///$(DB_PATH)
 
 # Data commands
 download-data: $(DATA_DIR)
@@ -188,24 +159,24 @@ download-data: $(DATA_DIR)
 prepare-data: download-data
 	$(PYTHON) -c "from core.experiment import NYCTaxiDurationExperiment; experiment = NYCTaxiDurationExperiment(data_dir='$(DATA_DIR)'); train_data = experiment.download_data($(TRAIN_YEAR), $(TRAIN_MONTH), '$(TAXI_TYPE)'); experiment.prepare_data(train_data); val_data = experiment.download_data($(VAL_YEAR), $(VAL_MONTH), '$(TAXI_TYPE)'); experiment.prepare_data(val_data)"
 
-# Storage commands
+# Storage setup commands
 setup-sqlite:
 	@echo "Setting up SQLite tracking backend at $(DB_PATH)"
 	$(PYTHON) -c "import mlflow; mlflow.set_tracking_uri('sqlite:///$(DB_PATH)')"
 
 setup-postgres:
 	@echo "Setting up PostgreSQL tracking backend"
-	$(PYTHON) -c "import mlflow; mlflow.set_tracking_uri('postgresql://$(DB_USER):$(DB_PASSWORD)@$(DB_HOST):$(DB_PORT)/$(DB_NAME)')"
+	$(PYTHON) -c "import mlflow; from core.storage_new import StorageConfig; print(StorageConfig.get_tracking_uri('postgresql', host='$(DB_HOST)', port=$(DB_PORT), database='$(DB_NAME)', user='$(DB_USER)', password='$(DB_PASSWORD)'))"
 
 setup-aws:
 	@echo "Setting up AWS S3 tracking backend"
-	$(PYTHON) -c "import mlflow; from core.storage import StorageConfig; tracking_uri = StorageConfig.get_tracking_uri('aws', s3_bucket='$(S3_BUCKET)', region='$(AWS_REGION)'); mlflow.set_tracking_uri(tracking_uri)"
+	$(PYTHON) -c "import mlflow; from core.storage_new import StorageConfig; uri = StorageConfig.get_tracking_uri('aws', host='$(HOST)', port=$(PORT)); print(uri)"
 
 setup-gcp:
 	@echo "Setting up GCP tracking backend"
-	$(PYTHON) -c "import mlflow; from core.storage import StorageConfig; tracking_uri = StorageConfig.get_tracking_uri('gcp', project='$(GCP_PROJECT)', bucket='$(GCP_BUCKET)'); mlflow.set_tracking_uri(tracking_uri)"
+	$(PYTHON) -c "import mlflow; from core.storage_new import StorageConfig; uri = StorageConfig.get_tracking_uri('gcp', host='$(HOST)', port=$(PORT)); print(uri)"
 
-# Maintenance commands
+# Maintenance
 clean:
 	@echo "Cleaning up temporary files"
 	rm -f $(DB_PATH)
@@ -216,8 +187,6 @@ clean-all: clean
 	@echo "Cleaning up all generated files"
 	rm -rf $(MLRUNS_DIR)
 	rm -rf $(MODELS_DIR)
-	# Keeping data directory because downloads might be time-consuming
-	# Add --force flag to remove data as well
 	if [ "$(force)" = "true" ]; then rm -rf $(DATA_DIR); fi
 
 requirements:
@@ -228,8 +197,8 @@ requirements:
 	@echo "pandas>=1.3.0" >> requirements.txt
 	@echo "numpy>=1.20.0" >> requirements.txt
 	@echo "hyperopt>=0.2.5" >> requirements.txt
-	@echo "psycopg2-binary>=2.9.0  # For PostgreSQL support" >> requirements.txt
-	@echo "boto3>=1.24.0  # For AWS support" >> requirements.txt
-	@echo "google-cloud-storage>=2.0.0  # For GCP support" >> requirements.txt
+	@echo "psycopg2-binary>=2.9.0" >> requirements.txt
+	@echo "boto3>=1.24.0" >> requirements.txt
+	@echo "google-cloud-storage>=2.0.0" >> requirements.txt
 
 .PHONY: help run-all run-models run-custom run-quick register-models serve-model mlflow-ui download-data prepare-data setup-sqlite setup-postgres setup-aws setup-gcp clean clean-all requirements

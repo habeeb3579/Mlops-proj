@@ -18,7 +18,8 @@ from models_files.linear import (
     LinearRegressionTrainer, RidgeTrainer, 
     LassoTrainer, LassoLarsTrainer, LinearSVRTrainer)
 from models_files.tree import RandomForestTrainer, XGBoostTrainer
-from core.storage import StorageConfig
+#from core.storage import StorageConfig
+from core.storage_new import StorageConfig
 
 # Type aliases for clarity
 ModelType = Any  # Generic model type
@@ -34,7 +35,7 @@ class ExperimentManager:
                  tracking_config: Dict[str, Any] = None,
                  experiment_name: str = "nyc-taxi-experiment",
                  model_registry_name: str = "nyc-taxi-regressor",
-                  models_dir: str = "./models"):
+                 models_dir: str = "./models_newest"):
         """
         Initialize the experiment manager
         
@@ -46,16 +47,18 @@ class ExperimentManager:
         self.models_dir = models_dir
         os.makedirs(self.models_dir, exist_ok=True)
 
-        self.tracking_config = tracking_config or {
-            'tracking_store': 'sqlite',
-            'db_path': 'mlflow.db'
-        }
+        self.tracking_config = tracking_config 
         
         # Set up MLflow tracking URI
-        tracking_uri = StorageConfig.get_tracking_uri(
-            self.tracking_config.get('tracking_store', 'sqlite'),
-            **self.tracking_config
-        )
+        # tracking_uri = StorageConfig.get_tracking_uri(
+        #     self.tracking_config.get('tracking_store', 'sqlite'),
+        #     **self.tracking_config
+        # )
+
+        tracking_uri = self.tracking_config['tracking_uri']
+
+        logger.info(f"tracking uri is: {tracking_uri}")
+
         mlflow.set_tracking_uri(tracking_uri)
         
         # Set up experiment
@@ -140,7 +143,7 @@ class ExperimentManager:
         """
         trainer = self._get_trainer(model_type, params)
         
-        with mlflow.start_run() as run:
+        with mlflow.start_run(run_name=model_type) as run:
             run_id = run.info.run_id
             
             # Log tags

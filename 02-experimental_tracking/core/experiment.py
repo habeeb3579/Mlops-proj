@@ -23,7 +23,7 @@ class NYCTaxiDurationExperiment:
                  experiment_name: str = "nyc-taxi-experiment",
                  model_registry_name: str = "nyc-taxi-regressor",
                  data_dir: str = "./data",
-                 models_dir: str = "./models"):
+                 models_dir: str = "./models_newest"):
         """
         Initialize the NYC Taxi Duration Experiment
         
