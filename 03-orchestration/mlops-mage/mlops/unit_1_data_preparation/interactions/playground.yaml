@@ -1,0 +1,53 @@
+inputs:
+  checkbox:
+    options:
+    - label: '239'
+      value: '239'
+    - label: '170'
+      value: '170'
+    - label: '1'
+      value: '1'
+    - label: '100'
+      value: '100'
+    type: checkbox
+  dropdown:
+    options:
+    - label: '236'
+      value: '236'
+    - label: '65'
+      value: '65'
+    - label: '2'
+      value: '2'
+    - label: '200'
+      value: '200'
+    type: dropdown_menu
+  text:
+    style:
+      input_type: number
+    type: text_field
+layout:
+- - variable: DOLocationID
+    width: 1
+- - variable: PULocationID
+    width: 1
+- - variable: trip_distance
+    width: 1
+variables:
+  DOLocationID:
+    description: 'Sample values: 239, 170'
+    input: checkbox
+    name: DOLocationID
+    types:
+    - integer
+  PULocationID:
+    description: 'Sample values: 239, 65'
+    input: dropdown
+    name: PULocationID
+    types:
+    - integer
+  trip_distance:
+    description: 'Sample values: 1.98, 0.7'
+    input: text
+    name: trip_distance
+    types:
+    - float

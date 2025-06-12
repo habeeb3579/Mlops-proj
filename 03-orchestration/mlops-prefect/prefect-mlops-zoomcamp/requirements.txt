@@ -1,0 +1,15 @@
+black
+fastparquet
+hyperopt
+mlflow
+pandas
+scikit_learn
+seaborn
+orjson
+prefect
+prefect-docker
+prefect_aws
+sagemaker
+pandas
+boto3
+xgboost

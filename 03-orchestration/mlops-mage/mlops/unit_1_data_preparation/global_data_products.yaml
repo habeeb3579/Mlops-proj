@@ -1,0 +1,18 @@
+training_set:
+  object_type: pipeline
+  object_uuid: data_preparation
+  project: unit_1_data_preparation
+  repo_path: /home/src/mlops/unit_1_data_preparation
+  settings:
+    build: {}
+xgboost2:
+  object_type: pipeline
+  object_uuid: xgboost_training
+  outdated_after:
+    seconds: 86362
+  outdated_starting_at:
+    hour_of_day: 12
+  project: unit_1_data_preparation
+  repo_path: /home/src/mlops/unit_1_data_preparation
+  settings:
+    xgboost: {}

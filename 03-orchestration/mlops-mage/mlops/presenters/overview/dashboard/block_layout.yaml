@@ -1,0 +1,22 @@
+blocks:
+  training_metrics2__rmse_:
+    configuration:
+      chart_type: time series line chart
+      group_by:
+      - start_time
+      metrics:
+      - aggregation: average
+        column: mse_Booster
+      time_interval: minute
+      x_axis_label_format: h:mm
+    data_source:
+      type: chart_code
+    error: null
+    name: Training metrics2 (RMSE)
+    name_new: Training metrics2 (RMSE)
+    skip_render: false
+    type: chart
+    uuid: training_metrics2__rmse_
+layout:
+- - block_uuid: training_metrics2__rmse_
+    width: 1

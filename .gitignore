@@ -1,0 +1,19 @@
+02-experimental_tracking/mlruns/
+02-experimental_tracking/model_newest/
+02-experimental_tracking/models/
+mlruns/
+models/
+mlflow.db
+02-experimental_tracking/mlflow_gcp/.terraform
+02-experimental_tracking/mlflow_gcp/.terraform.lock.hcl
+02-experimental_tracking/mlflow_gcp/terraform.tfstate.backup
+02-experimental_tracking/mlflow_gcp/terraform.tfstate
+
+# .gitignore
+*.h5
+*.pt
+*.pkl
+*.csv
+*.zip
+*.tar.gz
+data/
