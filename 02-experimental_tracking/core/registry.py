@@ -164,8 +164,9 @@ class ModelRegistry:
         mlmodel_filename = os.path.join(full_prefix, "MLmodel")
 
         try:
-            if scheme == "file":
-                mlmodel_path = os.path.join(parsed.path, artifact_path, "MLmodel")
+            if scheme in ["",'mlflow-artifacts']:
+                #mlmodel_path = os.path.join(parsed.path, artifact_path, "MLmodel") #this separates scheme from path if localhost is used as tracking_uri
+                mlmodel_path = os.path.join(artifact_uri, artifact_path, "MLmodel")
                 if os.path.exists(mlmodel_path):
                     with open(mlmodel_path, "r") as f:
                         mlmodel = yaml.safe_load(f)

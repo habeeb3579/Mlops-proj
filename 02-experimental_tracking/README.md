@@ -205,6 +205,8 @@ The framework uses Hyperopt for intelligent hyperparameter tuning. Each model ha
 - **Random Forest**: n_estimators, max_depth, min_samples_split, min_samples_leaf
 - **XGBoost**: learning_rate, max_depth, min_child_weight, subsample, colsample_bytree, reg_alpha, reg_lambda
 
+To run lassolarscv, we need to use dense matrix and not sparse, so our processing One-hot should set sparse to false
+
 To customize the hyperparameter search:
 
 ```python

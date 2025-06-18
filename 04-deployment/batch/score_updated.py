@@ -11,11 +11,24 @@ import typer
 
 app = typer.Typer()
 
-model = None  # Will be loaded after CLI inputs
-
 @task
 def generate_uuids(n):
     return [str(uuid.uuid4()) for _ in range(n)]
+
+@task
+def setup_environment_and_load_model(tracking_server: str, model_name: str, deployment_type: str):
+    """Setup environment and load model"""
+    if deployment_type == "remote":
+        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/home/habeeb/dprof-dezoomfinal-b4d188529d18.json"
+        print("🔐 GCP credentials configured.")
+
+    mlflow.set_tracking_uri(tracking_server)
+    print(f"📡 MLflow tracking URI set to: {tracking_server}")
+    
+    model = mlflow.pyfunc.load_model(f"models:/{model_name}@production")
+    print(f"🎯 Loaded model: {model_name} @ production")
+    
+    return model
 
 @task
 def download_data(taxi: str, year: int, month: int) -> pd.DataFrame:
@@ -64,12 +77,11 @@ def prepare_df(data: Union[pd.DataFrame, List[Dict], Dict]) -> Tuple[pd.DataFram
     return df, target
 
 @task
-def predict(features: pd.DataFrame) -> np.ndarray:
-    global model
+def predict(features: pd.DataFrame, model) -> np.ndarray:
     return model.predict(features)
 
 @task
-def save_predictions(dfs: pd.DataFrame, targ: np.ndarray, preds: np.ndarray, taxi: str, year: int, month: int):
+def save_predictions(dfs: pd.DataFrame, targ: np.ndarray, preds: np.ndarray, taxi: str, year: int, month: int, model):
     df_result = pd.DataFrame({
         'ride_id': dfs['ride_id'],
         'lpep_pickup_datetime': dfs['lpep_pickup_datetime'],
@@ -86,7 +98,15 @@ def save_predictions(dfs: pd.DataFrame, targ: np.ndarray, preds: np.ndarray, tax
     print(f"✅ Results saved to {output_file}")
 
 @flow
-def apply_model_flow(taxi: str = "green", year: int = 2021, month: int = 2, run_date: Optional[str] = None):
+def apply_model_flow(
+    taxi: str = "green", 
+    year: int = 2021, 
+    month: int = 2, 
+    tracking_server: str = "http://127.0.0.1:5000",
+    model_name: str = "nyc-taxi-regressor-weighted-main9",
+    deployment_type: str = "local",
+    run_date: Optional[str] = None
+):
     print(f"▶️ Running apply_model for {taxi} - {year}-{month}")
 
     # Parse the run_date or fall back to Prefect's run context
@@ -98,10 +118,14 @@ def apply_model_flow(taxi: str = "green", year: int = 2021, month: int = 2, run_
 
     print(f"📅 Run Date: {run_date}")
 
+    # Load model as part of the flow
+    model = setup_environment_and_load_model(tracking_server, model_name, deployment_type)
+    
+    # Execute the pipeline
     df = download_data(taxi, year, month)
     dfs, targ = prepare_df(df)
-    preds = predict(dfs)
-    save_predictions(dfs, targ, preds, taxi, year, month)
+    preds = predict(dfs, model)
+    save_predictions(dfs, targ, preds, taxi, year, month, model)
 
 @app.command()
 def run(
@@ -113,39 +137,16 @@ def run(
     deployment_type: str = typer.Option("remote", help="Deployment type: 'local' or 'remote'"),
     run_date: Optional[str] = typer.Option(None, help="Prefect run date in ISO format (e.g., 2025-06-17T12:00:00)")
 ):
-    global model
-
-    if deployment_type == "remote":
-        os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = "/home/habeeb/dprof-dezoomfinal-b4d188529d18.json"
-        print("🔐 GCP credentials configured.")
-
-
-    mlflow.set_tracking_uri(tracking_server)
-    print(f"📡 MLflow tracking URI set to: {tracking_server}")
-    
-    model = mlflow.pyfunc.load_model(f"models:/{model_name}@production")
-    print(f"🎯 Loaded model: {model_name} @ production")
-
-    apply_model_flow(taxi=taxi, year=year, month=month, run_date=run_date)
+    """CLI command that calls the flow with all parameters"""
+    apply_model_flow(
+        taxi=taxi, 
+        year=year, 
+        month=month, 
+        tracking_server=tracking_server,
+        model_name=model_name,
+        deployment_type=deployment_type,
+        run_date=run_date
+    )
 
 if __name__ == "__main__":
     app()
-
-
-# python score.py \
-#   --taxi green \
-#   --year 2021 \
-#   --month 2 \
-#   --tracking-server "http://localhost:5000" \
-#   --model-name "nyc-taxi-regressor-weighted-main10" \
-#   --deployment-type "local"
-
-#with run date
-# python score.py \
-#   --taxi green \
-#   --year 2021 \
-#   --month 2 \
-#   --tracking-server "http://localhost:5000" \
-#   --model-name "nyc-taxi-regressor-weighted-main10" \
-#   --deployment-type "local" \
-#   --run-date "2025-06-17T12:00:00"
