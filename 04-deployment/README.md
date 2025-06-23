@@ -30,3 +30,9 @@ docker run -it --rm -p 9696:9696 ride-duration-prediction-service:v1
 ```python
 python test.py
 ```
+
+### use this to set config file to use for a specific repo
+
+```bash
+git remote set-url origin git@github.com-habeeb:username/repo-name.git
+```

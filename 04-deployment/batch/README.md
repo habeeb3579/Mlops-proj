@@ -1,3 +1,13 @@
+First run (local path of:)
+
+/home/habeeb/Mlops-proj/02-experimental_tracking/make_run.ipynb
+
+then
+
+/home/habeeb/Mlops-proj/02-experimental_tracking/local_deployment.ipynb (optional, used to set tracking_uri so that we can access it elsewhere)
+
+this is where we are getting the mlflow registered model from.
+
 # Method 1: Serve without creating a workpool (Recommended but this is temporary and not permanently deployed)
 
 ## Terminal 1: Start Prefect server

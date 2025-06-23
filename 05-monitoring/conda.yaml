@@ -1,0 +1,25 @@
+name: ml-monitoring
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pandas
+  - numpy
+  - scikit-learn
+  - tqdm
+  - requests
+  - joblib
+  - pyarrow
+  - psycopg2-binary
+  - jupyter
+  - matplotlib
+  - ipykernel # Needed to register with Jupyter
+  - pip:
+      - prefect
+      - evidently
+      - mlflow
+      - loguru
+      - xgboost
+      - hyperopt

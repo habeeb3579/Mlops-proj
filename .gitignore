@@ -1,6 +1,7 @@
 02-experimental_tracking/mlruns/
 02-experimental_tracking/model_newest/
 02-experimental_tracking/models/
+02-experimental_tracking/__pycache__
 mlruns/
 models/
 mlflow.db
@@ -21,3 +22,6 @@ mlflow.db
 *.tar.gz
 data/
 __pycache__/
+05-monitoring/.env
+04-deployment/batch/score_deploy.py
+05-monitoring/mlflow_evidently/logs
