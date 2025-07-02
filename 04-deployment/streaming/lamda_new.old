@@ -1,0 +1,455 @@
+# lambda.tf - Updated with Multiple Smaller Lambda Layers
+
+# Create requirements files for different dependency groups
+resource "local_file" "core_requirements" {
+  content = <<EOF
+requests==2.31.0
+boto3
+botocore
+cloudpickle==3.1.1
+psutil==5.9.8
+EOF
+  filename = "${path.module}/core_requirements.txt"
+}
+
+resource "local_file" "numpy_requirements" {
+  content = <<EOF
+numpy==1.26.4
+EOF
+  filename = "${path.module}/numpy_requirements.txt"
+}
+
+resource "local_file" "pandas_requirements" {
+  content = <<EOF
+pandas==2.0.3
+EOF
+  filename = "${path.module}/pandas_requirements.txt"
+}
+
+resource "local_file" "scipy_requirements" {
+  content = <<EOF
+scipy==1.13.1
+EOF
+  filename = "${path.module}/scipy_requirements.txt"
+}
+
+resource "local_file" "sklearn_requirements" {
+  content = <<EOF
+scikit-learn==1.5.1
+EOF
+  filename = "${path.module}/sklearn_requirements.txt"
+}
+
+resource "local_file" "mlflow_requirements" {
+  content = <<EOF
+mlflow==2.22.0
+EOF
+  filename = "${path.module}/mlflow_requirements.txt"
+}
+
+# Optional: XGBoost layer (if needed, uncomment)
+# resource "local_file" "xgboost_requirements" {
+#   content = <<EOF
+# xgboost==2.1.4
+# EOF
+#   filename = "${path.module}/xgboost_requirements.txt"
+# }
+
+# Create Core Dependencies Layer
+resource "null_resource" "core_layer" {
+  depends_on = [local_file.core_requirements]
+  
+  triggers = {
+    requirements = local_file.core_requirements.content_md5
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+      rm -rf ${path.module}/core_layer
+      mkdir -p ${path.module}/core_layer/python
+      pip install -r ${path.module}/core_requirements.txt -t ${path.module}/core_layer/python/ --no-deps
+      pip install -r ${path.module}/core_requirements.txt -t ${path.module}/core_layer/python/
+    EOF
+  }
+}
+
+# Create NumPy Layer (foundation for other packages)
+resource "null_resource" "numpy_layer" {
+  depends_on = [local_file.numpy_requirements]
+  
+  triggers = {
+    requirements = local_file.numpy_requirements.content_md5
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+      rm -rf ${path.module}/numpy_layer
+      mkdir -p ${path.module}/numpy_layer/python
+      pip install -r ${path.module}/numpy_requirements.txt -t ${path.module}/numpy_layer/python/ --no-cache-dir
+      # Remove unnecessary files to reduce size
+      find ${path.module}/numpy_layer/python -name "*.pyc" -delete
+      find ${path.module}/numpy_layer/python -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+      find ${path.module}/numpy_layer/python -name "*.so" -exec strip {} \; 2>/dev/null || true
+    EOF
+  }
+}
+
+# Create Pandas Layer
+resource "null_resource" "pandas_layer" {
+  depends_on = [local_file.pandas_requirements]
+  
+  triggers = {
+    requirements = local_file.pandas_requirements.content_md5
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+      rm -rf ${path.module}/pandas_layer
+      mkdir -p ${path.module}/pandas_layer/python
+      pip install -r ${path.module}/pandas_requirements.txt -t ${path.module}/pandas_layer/python/ --no-cache-dir --no-deps
+      pip install pytz python-dateutil -t ${path.module}/pandas_layer/python/ --no-cache-dir
+      # Remove unnecessary files to reduce size
+      find ${path.module}/pandas_layer/python -name "*.pyc" -delete
+      find ${path.module}/pandas_layer/python -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+      find ${path.module}/pandas_layer/python -name "*.so" -exec strip {} \; 2>/dev/null || true
+      # Remove pandas tests and docs
+      rm -rf ${path.module}/pandas_layer/python/pandas/tests/ 2>/dev/null || true
+      rm -rf ${path.module}/pandas_layer/python/pandas/io/clipboard/ 2>/dev/null || true
+    EOF
+  }
+}
+
+# Create SciPy Layer
+resource "null_resource" "scipy_layer" {
+  depends_on = [local_file.scipy_requirements]
+  
+  triggers = {
+    requirements = local_file.scipy_requirements.content_md5
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+      rm -rf ${path.module}/scipy_layer
+      mkdir -p ${path.module}/scipy_layer/python
+      pip install -r ${path.module}/scipy_requirements.txt -t ${path.module}/scipy_layer/python/ --no-cache-dir --no-deps
+      # Remove unnecessary files to reduce size
+      find ${path.module}/scipy_layer/python -name "*.pyc" -delete
+      find ${path.module}/scipy_layer/python -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+      find ${path.module}/scipy_layer/python -name "*.so" -exec strip {} \; 2>/dev/null || true
+      # Remove scipy tests
+      rm -rf ${path.module}/scipy_layer/python/scipy/*/tests/ 2>/dev/null || true
+    EOF
+  }
+}
+
+# Create Scikit-learn Layer
+resource "null_resource" "sklearn_layer" {
+  depends_on = [local_file.sklearn_requirements]
+  
+  triggers = {
+    requirements = local_file.sklearn_requirements.content_md5
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+      rm -rf ${path.module}/sklearn_layer
+      mkdir -p ${path.module}/sklearn_layer/python
+      pip install -r ${path.module}/sklearn_requirements.txt -t ${path.module}/sklearn_layer/python/ --no-cache-dir --no-deps
+      pip install joblib threadpoolctl -t ${path.module}/sklearn_layer/python/ --no-cache-dir
+      # Remove unnecessary files to reduce size
+      find ${path.module}/sklearn_layer/python -name "*.pyc" -delete
+      find ${path.module}/sklearn_layer/python -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+      find ${path.module}/sklearn_layer/python -name "*.so" -exec strip {} \; 2>/dev/null || true
+      # Remove sklearn tests and datasets
+      rm -rf ${path.module}/sklearn_layer/python/sklearn/*/tests/ 2>/dev/null || true
+      rm -rf ${path.module}/sklearn_layer/python/sklearn/datasets/ 2>/dev/null || true
+    EOF
+  }
+}
+
+# Create MLflow Layer
+resource "null_resource" "mlflow_layer" {
+  depends_on = [local_file.mlflow_requirements]
+  
+  triggers = {
+    requirements = local_file.mlflow_requirements.content_md5
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+      rm -rf ${path.module}/mlflow_layer
+      mkdir -p ${path.module}/mlflow_layer/python
+      pip install -r ${path.module}/mlflow_requirements.txt -t ${path.module}/mlflow_layer/python/ --no-cache-dir
+      # Remove unnecessary files to reduce size
+      find ${path.module}/mlflow_layer/python -name "*.pyc" -delete
+      find ${path.module}/mlflow_layer/python -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+      find ${path.module}/mlflow_layer/python -name "*.so" -exec strip {} \; 2>/dev/null || true
+    EOF
+  }
+}
+
+# Optional: XGBoost Layer (uncomment if needed)
+# resource "null_resource" "xgboost_layer" {
+#   depends_on = [local_file.xgboost_requirements]
+#   
+#   triggers = {
+#     requirements = local_file.xgboost_requirements.content_md5
+#   }
+#
+#   provisioner "local-exec" {
+#     command = <<EOF
+#       rm -rf ${path.module}/xgboost_layer
+#       mkdir -p ${path.module}/xgboost_layer/python
+#       pip install -r ${path.module}/xgboost_requirements.txt -t ${path.module}/xgboost_layer/python/
+#     EOF
+#   }
+# }
+
+# Create layer ZIP files
+data "archive_file" "core_layer_zip" {
+  depends_on  = [null_resource.core_layer]
+  type        = "zip"
+  output_path = "${path.module}/core_layer.zip"
+  source_dir  = "${path.module}/core_layer"
+}
+
+data "archive_file" "numpy_layer_zip" {
+  depends_on  = [null_resource.numpy_layer]
+  type        = "zip"
+  output_path = "${path.module}/numpy_layer.zip"
+  source_dir  = "${path.module}/numpy_layer"
+}
+
+data "archive_file" "pandas_layer_zip" {
+  depends_on  = [null_resource.pandas_layer]
+  type        = "zip"
+  output_path = "${path.module}/pandas_layer.zip"
+  source_dir  = "${path.module}/pandas_layer"
+}
+
+data "archive_file" "scipy_layer_zip" {
+  depends_on  = [null_resource.scipy_layer]
+  type        = "zip"
+  output_path = "${path.module}/scipy_layer.zip"
+  source_dir  = "${path.module}/scipy_layer"
+}
+
+data "archive_file" "sklearn_layer_zip" {
+  depends_on  = [null_resource.sklearn_layer]
+  type        = "zip"
+  output_path = "${path.module}/sklearn_layer.zip"
+  source_dir  = "${path.module}/sklearn_layer"
+}
+
+data "archive_file" "mlflow_layer_zip" {
+  depends_on  = [null_resource.mlflow_layer]
+  type        = "zip"
+  output_path = "${path.module}/mlflow_layer.zip"
+  source_dir  = "${path.module}/mlflow_layer"
+}
+
+# Optional: XGBoost Layer ZIP (uncomment if needed)
+# data "archive_file" "xgboost_layer_zip" {
+#   depends_on  = [null_resource.xgboost_layer]
+#   type        = "zip"
+#   output_path = "${path.module}/xgboost_layer.zip"
+#   source_dir  = "${path.module}/xgboost_layer"
+# }
+
+# Lambda Layers
+resource "aws_lambda_layer_version" "core_dependencies" {
+  layer_name          = "${var.project_name}-core-dependencies"
+  filename            = data.archive_file.core_layer_zip.output_path
+  compatible_runtimes = ["python3.12"]
+  source_code_hash    = data.archive_file.core_layer_zip.output_base64sha256
+  
+  description = "Core dependencies for ${var.project_name} Lambda functions"
+}
+
+resource "aws_lambda_layer_version" "numpy_dependencies" {
+  layer_name          = "${var.project_name}-numpy-dependencies"
+  filename            = data.archive_file.numpy_layer_zip.output_path
+  compatible_runtimes = ["python3.12"]
+  source_code_hash    = data.archive_file.numpy_layer_zip.output_base64sha256
+  
+  description = "NumPy dependencies for ${var.project_name} Lambda functions"
+}
+
+resource "aws_lambda_layer_version" "pandas_dependencies" {
+  layer_name          = "${var.project_name}-pandas-dependencies"
+  filename            = data.archive_file.pandas_layer_zip.output_path
+  compatible_runtimes = ["python3.12"]
+  source_code_hash    = data.archive_file.pandas_layer_zip.output_base64sha256
+  
+  description = "Pandas dependencies for ${var.project_name} Lambda functions"
+}
+
+resource "aws_lambda_layer_version" "scipy_dependencies" {
+  layer_name          = "${var.project_name}-scipy-dependencies"
+  filename            = data.archive_file.scipy_layer_zip.output_path
+  compatible_runtimes = ["python3.12"]
+  source_code_hash    = data.archive_file.scipy_layer_zip.output_base64sha256
+  
+  description = "SciPy dependencies for ${var.project_name} Lambda functions"
+}
+
+resource "aws_lambda_layer_version" "sklearn_dependencies" {
+  layer_name          = "${var.project_name}-sklearn-dependencies"
+  filename            = data.archive_file.sklearn_layer_zip.output_path
+  compatible_runtimes = ["python3.12"]
+  source_code_hash    = data.archive_file.sklearn_layer_zip.output_base64sha256
+  
+  description = "Scikit-learn dependencies for ${var.project_name} Lambda functions"
+}
+
+resource "aws_lambda_layer_version" "mlflow_dependencies" {
+  layer_name          = "${var.project_name}-mlflow-dependencies"
+  filename            = data.archive_file.mlflow_layer_zip.output_path
+  compatible_runtimes = ["python3.12"]
+  source_code_hash    = data.archive_file.mlflow_layer_zip.output_base64sha256
+  
+  description = "MLflow dependencies for ${var.project_name} Lambda functions"
+}
+
+# Optional: XGBoost Layer (uncomment if needed)
+# resource "aws_lambda_layer_version" "xgboost_dependencies" {
+#   layer_name          = "${var.project_name}-xgboost-dependencies"
+#   filename            = data.archive_file.xgboost_layer_zip.output_path
+#   compatible_runtimes = ["python3.12"]
+#   source_code_hash    = data.archive_file.xgboost_layer_zip.output_base64sha256
+#   
+#   description = "XGBoost dependencies for ${var.project_name} Lambda functions"
+# }
+
+# Create ZIP files for Lambda functions (unchanged)
+data "archive_file" "producer_lambda_zip" {
+  type        = "zip"
+  output_path = "${path.module}/producer_lambda.zip"
+  source {
+    content = templatefile("${path.module}/lambda_functions/producer.py", {
+      queue_url      = aws_sqs_queue.main_queue.url
+      fifo_queue_url = aws_sqs_queue.fifo_queue.url
+    })
+    filename = "lambda_function.py"
+  }
+}
+
+data "archive_file" "consumer_lambda_zip" {
+  type        = "zip"
+  output_path = "${path.module}/consumer_lambda.zip"
+  source {
+    content  = file("${path.module}/lambda_functions/consumer.py")
+    filename = "lambda_function.py"
+  }
+}
+
+# Producer Lambda function - Updated with multiple layers
+resource "aws_lambda_function" "producer" {
+  filename         = data.archive_file.producer_lambda_zip.output_path
+  function_name    = "${var.project_name}-producer"
+  role            = aws_iam_role.lambda_producer_role.arn
+  handler         = "lambda_function.lambda_handler"
+  runtime         = "python3.12"
+  timeout         = var.lambda_timeout
+  memory_size     = var.lambda_memory
+  source_code_hash = data.archive_file.producer_lambda_zip.output_base64sha256
+  
+  # Add multiple layers (producer typically needs lighter dependencies)
+  layers = [
+    aws_lambda_layer_version.core_dependencies.arn,
+    # Add other layers as needed for producer
+  ]
+
+  environment {
+    variables = {
+      QUEUE_URL      = aws_sqs_queue.main_queue.url
+      FIFO_QUEUE_URL = aws_sqs_queue.fifo_queue.url
+      REGION         = data.aws_region.current.name
+    }
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_producer_policy_attachment,
+    aws_cloudwatch_log_group.producer_logs,
+  ]
+
+  tags = var.tags
+}
+
+# Consumer Lambda function - Updated with multiple layers
+resource "aws_lambda_function" "consumer" {
+  filename         = data.archive_file.consumer_lambda_zip.output_path
+  function_name    = "${var.project_name}-consumer"
+  role            = aws_iam_role.lambda_consumer_role.arn
+  handler         = "lambda_function.lambda_handler"
+  runtime         = "python3.12"
+  timeout         = var.lambda_timeout
+  memory_size     = var.lambda_memory
+  source_code_hash = data.archive_file.consumer_lambda_zip.output_base64sha256
+  
+  # Add multiple layers (consumer needs ML dependencies)
+  # Note: AWS Lambda allows up to 5 layers per function
+  layers = [
+    aws_lambda_layer_version.core_dependencies.arn,
+    aws_lambda_layer_version.numpy_dependencies.arn,
+    aws_lambda_layer_version.pandas_dependencies.arn,
+    aws_lambda_layer_version.scipy_dependencies.arn,
+    aws_lambda_layer_version.sklearn_dependencies.arn,
+    # aws_lambda_layer_version.mlflow_dependencies.arn,  # Add this if needed (but exceeds 5 layer limit)
+    # Uncomment if XGBoost is needed:
+    # aws_lambda_layer_version.xgboost_dependencies.arn,
+  ]
+
+  environment {
+    variables = {
+      QUEUE_URL = aws_sqs_queue.main_queue.url
+      REGION    = data.aws_region.current.name
+    }
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_consumer_policy_attachment,
+    aws_cloudwatch_log_group.consumer_logs,
+  ]
+
+  tags = var.tags
+}
+
+# Rest of your configuration remains the same...
+resource "aws_lambda_event_source_mapping" "sqs_trigger" {
+  event_source_arn = aws_sqs_queue.main_queue.arn
+  function_name    = aws_lambda_function.consumer.arn
+  batch_size       = 10
+  
+  maximum_batching_window_in_seconds = 5
+}
+
+resource "aws_cloudwatch_event_rule" "scheduled_processing" {
+  name                = "${var.project_name}-scheduled-processing"
+  description         = "Trigger consumer processing every 5 minutes"
+  schedule_expression = "rate(5 minutes)"
+  
+  tags = var.tags
+}
+
+resource "aws_cloudwatch_event_target" "lambda_target" {
+  rule      = aws_cloudwatch_event_rule.scheduled_processing.name
+  target_id = "ConsumerLambdaTarget"
+  arn       = aws_lambda_function.consumer.arn
+}
+
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.consumer.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.scheduled_processing.arn
+}
+
+resource "aws_lambda_permission" "api_gateway_producer" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.producer.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
+}

@@ -16,12 +16,17 @@ mlflow.db
 # .gitignore
 *.h5
 *.pt
+*.tfstate
+*.tfstate.backup
 *.pkl
+*.hcl
 *.csv
 *.zip
 *.tar.gz
+*.pytest_cache
 data/
 __pycache__/
 05-monitoring/.env
 04-deployment/batch/score_deploy.py
 05-monitoring/mlflow_evidently/logs
+04-deployment/streaming/.terraform

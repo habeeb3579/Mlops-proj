@@ -2,6 +2,14 @@
 
 # pipenv shell
 
+you can check with
+
+```bash
+pipenv --venv
+```
+
+copy the path add /bin/python and put in the select python interpreter
+
 # PS1="> "
 
 install gunicorn for production server

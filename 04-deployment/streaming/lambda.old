@@ -1,0 +1,172 @@
+# lambda.tf - Updated with Lambda Layers
+
+# Create requirements.txt for dependencies
+resource "local_file" "requirements" {
+  content = <<EOF
+pandas==2.0.3
+requests==2.31.0
+mlflow==2.22.0
+cloudpickle==3.1.1
+numpy==1.26.4
+psutil==5.9.8
+scikit-learn==1.5.1
+scipy==1.13.1
+#xgboost==2.1.4
+# Add other dependencies here
+EOF
+  filename = "${path.module}/requirements.txt"
+}
+
+# Create Lambda layer with dependencies
+resource "null_resource" "lambda_layer" {
+  depends_on = [local_file.requirements]
+  
+  triggers = {
+    requirements = local_file.requirements.content_md5 #filemd5("${path.module}/requirements.txt")
+  }
+
+  provisioner "local-exec" {
+    command = <<EOF
+      mkdir -p ${path.module}/layer/python
+      pip install -r ${path.module}/requirements.txt -t ${path.module}/layer/python/
+    EOF
+  }
+}
+
+# Create layer ZIP
+data "archive_file" "lambda_layer_zip" {
+  depends_on  = [null_resource.lambda_layer]
+  type        = "zip"
+  output_path = "${path.module}/lambda_layer.zip"
+  source_dir  = "${path.module}/layer"
+}
+
+# Lambda Layer
+resource "aws_lambda_layer_version" "dependencies" {
+  layer_name          = "${var.project_name}-dependencies"
+  filename            = data.archive_file.lambda_layer_zip.output_path
+  compatible_runtimes = ["python3.12"]
+  source_code_hash    = data.archive_file.lambda_layer_zip.output_base64sha256
+  
+  description = "Dependencies for ${var.project_name} Lambda functions"
+}
+
+# Create ZIP files for Lambda functions (unchanged)
+data "archive_file" "producer_lambda_zip" {
+  type        = "zip"
+  output_path = "${path.module}/producer_lambda.zip"
+  source {
+    content = templatefile("${path.module}/lambda_functions/producer.py", {
+      queue_url      = aws_sqs_queue.main_queue.url
+      fifo_queue_url = aws_sqs_queue.fifo_queue.url
+    })
+    filename = "lambda_function.py"
+  }
+}
+
+data "archive_file" "consumer_lambda_zip" {
+  type        = "zip"
+  output_path = "${path.module}/consumer_lambda.zip"
+  source {
+    content  = file("${path.module}/lambda_functions/consumer.py")
+    filename = "lambda_function.py"
+  }
+}
+
+# Producer Lambda function - Updated with layer
+resource "aws_lambda_function" "producer" {
+  filename         = data.archive_file.producer_lambda_zip.output_path
+  function_name    = "${var.project_name}-producer"
+  role            = aws_iam_role.lambda_producer_role.arn
+  handler         = "lambda_function.lambda_handler"
+  runtime         = "python3.12"
+  timeout         = var.lambda_timeout
+  memory_size     = var.lambda_memory
+  source_code_hash = data.archive_file.producer_lambda_zip.output_base64sha256
+  
+  # Add the layer
+  layers = [aws_lambda_layer_version.dependencies.arn]
+
+  environment {
+    variables = {
+      QUEUE_URL      = aws_sqs_queue.main_queue.url
+      FIFO_QUEUE_URL = aws_sqs_queue.fifo_queue.url
+      REGION         = data.aws_region.current.name
+    }
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_producer_policy_attachment,
+    aws_cloudwatch_log_group.producer_logs,
+  ]
+
+  tags = var.tags
+}
+
+# Consumer Lambda function - Updated with layer
+resource "aws_lambda_function" "consumer" {
+  filename         = data.archive_file.consumer_lambda_zip.output_path
+  function_name    = "${var.project_name}-consumer"
+  role            = aws_iam_role.lambda_consumer_role.arn
+  handler         = "lambda_function.lambda_handler"
+  runtime         = "python3.12"
+  timeout         = var.lambda_timeout
+  memory_size     = var.lambda_memory
+  source_code_hash = data.archive_file.consumer_lambda_zip.output_base64sha256
+  
+  # Add the layer
+  layers = [aws_lambda_layer_version.dependencies.arn]
+
+  environment {
+    variables = {
+      QUEUE_URL = aws_sqs_queue.main_queue.url
+      REGION    = data.aws_region.current.name
+    }
+  }
+
+  depends_on = [
+    aws_iam_role_policy_attachment.lambda_consumer_policy_attachment,
+    aws_cloudwatch_log_group.consumer_logs,
+  ]
+
+  tags = var.tags
+}
+
+# Rest of your configuration remains the same...
+resource "aws_lambda_event_source_mapping" "sqs_trigger" {
+  event_source_arn = aws_sqs_queue.main_queue.arn
+  function_name    = aws_lambda_function.consumer.arn
+  batch_size       = 10
+  
+  maximum_batching_window_in_seconds = 5
+}
+
+resource "aws_cloudwatch_event_rule" "scheduled_processing" {
+  name                = "${var.project_name}-scheduled-processing"
+  description         = "Trigger consumer processing every 5 minutes"
+  schedule_expression = "rate(5 minutes)"
+  
+  tags = var.tags
+}
+
+resource "aws_cloudwatch_event_target" "lambda_target" {
+  rule      = aws_cloudwatch_event_rule.scheduled_processing.name
+  target_id = "ConsumerLambdaTarget"
+  arn       = aws_lambda_function.consumer.arn
+}
+
+resource "aws_lambda_permission" "allow_eventbridge" {
+  statement_id  = "AllowExecutionFromEventBridge"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.consumer.function_name
+  principal     = "events.amazonaws.com"
+  source_arn    = aws_cloudwatch_event_rule.scheduled_processing.arn
+}
+
+resource "aws_lambda_permission" "api_gateway_producer" {
+  statement_id  = "AllowExecutionFromAPIGateway"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.producer.function_name
+  principal     = "apigateway.amazonaws.com"
+  source_arn    = "${aws_api_gateway_rest_api.main.execution_arn}/*/*"
+}
